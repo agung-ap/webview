@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WebView</string>
+    <string name="error_message">Halaman tidak dapat dimuat \nmohon cek koneksi internet anda dan \ntekan refresh</string>
+</resources>
