@@ -1,142 +1,108 @@
 package grup.developer.agung.webview;
 
-import android.content.Context;
+import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.net.ConnectivityManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
-    private ProgressBar progressBar;
-    private WebView webView;
-    private TextView errorMessage;
-    private Button refreshButton;
+import im.delight.android.webview.AdvancedWebView;
+
+public class MainActivity extends AppCompatActivity implements AdvancedWebView.Listener  {
+    private AdvancedWebView mWebView;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        progressBar = (ProgressBar)findViewById(R.id.progressBar);
-        errorMessage = (TextView)findViewById(R.id.error_message);
-        refreshButton = (Button)findViewById(R.id.refresh_button);
-        webView = (WebView) findViewById(R.id.webview);
+        progressDialog = new ProgressDialog(this);
 
-        setWebView();
+        mWebView = (AdvancedWebView) findViewById(R.id.webview);
+        mWebView.setListener(this, this);
+        mWebView.loadUrl("http://dewiariyanti105.000webhostapp.com/");
 
-        refreshButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!isNetworkConnected()){
-                    webView.setVisibility(View.GONE);
-                    errorMessage.setVisibility(View.VISIBLE);
-                    refreshButton.setVisibility(View.VISIBLE);
-                    errorMessage.setText("Failed to load Url, Check your internet connection than Refresh");
-                }else {
-                    setWebView();
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
+                progressDialog.setMessage("Loading.. " + progress + "%" );
+                progressDialog.show();
+                progressDialog.setCanceledOnTouchOutside(false);
+
+                if (progress == 100) {
+                    progressDialog.dismiss();
+                    mWebView.setVisibility(View.VISIBLE);
+                } else {
+                    progressDialog.show();
+                    mWebView.setVisibility(View.GONE);
                 }
-
-
-
             }
         });
-
     }
 
-    private boolean isNetworkConnected() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        return cm.getActiveNetworkInfo() != null;
+    @SuppressLint("NewApi")
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mWebView.onResume();
+        // ...
     }
 
-    private void setWebView(){
-        webView.getSettings().setLoadsImagesAutomatically(true);
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.getSettings().setDomStorageEnabled(true);
+    @SuppressLint("NewApi")
+    @Override
+    protected void onPause() {
+        mWebView.onPause();
+        // ...
+        super.onPause();
+    }
 
-        // Tiga baris di bawah ini agar laman yang dimuat dapat
-        // melakukan zoom.
-        webView.getSettings().setSupportZoom(true);
-        webView.getSettings().setBuiltInZoomControls(true);
-        webView.getSettings().setDisplayZoomControls(false);
+    @Override
+    protected void onDestroy() {
+        mWebView.onDestroy();
+        // ...
+        super.onDestroy();
+    }
 
-        // Baris di bawah untuk menambahkan scrollbar di dalam WebView-nya
-        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        webView.setWebViewClient(new MyWebViewClient());
-        webView.loadUrl("https://www.codepolitan.com");
-
-        if (isNetworkConnected()){
-            errorMessage.setVisibility(View.GONE);
-            refreshButton.setVisibility(View.GONE);
-
-            webView.setWebChromeClient(new WebChromeClient() {
-                public void onProgressChanged(WebView view, int progress) {
-                    progressBar.setProgress(progress);
-                    if (progress == 100) {
-                        progressBar.setVisibility(View.GONE);
-                        webView.setVisibility(View.VISIBLE);
-                    } else {
-                        progressBar.setVisibility(View.VISIBLE);
-                        webView.setVisibility(View.GONE);
-                    }
-                }
-            });
-
-            webView.setWebViewClient(new WebViewClient(){
-
-                @Override public void onReceivedError(WebView view, WebResourceRequest request,
-                                                      WebResourceError error) {
-                    super.onReceivedError(view, request, error);
-                    // Do something
-                    webView.setVisibility(View.GONE);
-                    errorMessage.setVisibility(View.VISIBLE);
-                    refreshButton.setVisibility(View.VISIBLE);
-                    errorMessage.setText("Failed to load Url, Check your internet connection than Refresh");
-
-                }
-            });
-
-        }else {
-            webView.setVisibility(View.GONE);
-            progressBar.setVisibility(View.GONE);
-            errorMessage.setVisibility(View.VISIBLE);
-            refreshButton.setVisibility(View.VISIBLE);
-        }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        mWebView.onActivityResult(requestCode, resultCode, intent);
+        // ...
     }
 
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()){
-            webView.goBack();
-        }else {
-            super.onBackPressed();
-        }
+        if (!mWebView.onBackPressed()) { return; }
+        // ...
+        super.onBackPressed();
     }
 
-    public class MyWebViewClient extends WebViewClient{
-        boolean timeout;
+    @Override
+    public void onPageStarted(String url, Bitmap favicon) {
 
-        public MyWebViewClient() {
-            timeout = true;
-        }
+    }
 
+    @Override
+    public void onPageFinished(String url) {
 
+    }
 
-        @Override
-        public void onPageFinished(WebView view, String url) {
-            timeout = false;
-        }
+    @Override
+    public void onPageError(int errorCode, String description, String failingUrl) {
+
+    }
+
+    @Override
+    public void onDownloadRequested(String url, String suggestedFilename, String mimeType, long contentLength, String contentDisposition, String userAgent) {
+
+    }
+
+    @Override
+    public void onExternalPageRequest(String url) {
+
     }
 }
