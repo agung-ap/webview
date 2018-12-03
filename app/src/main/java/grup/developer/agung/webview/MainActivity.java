@@ -9,12 +9,17 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.widget.Button;
+import android.widget.TextView;
 
 import im.delight.android.webview.AdvancedWebView;
 
 public class MainActivity extends AppCompatActivity implements AdvancedWebView.Listener  {
     private AdvancedWebView mWebView;
     private ProgressDialog progressDialog;
+    private TextView errorMessage;
+    private Button reload;
+    private View view;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +27,16 @@ public class MainActivity extends AppCompatActivity implements AdvancedWebView.L
         setContentView(R.layout.activity_main);
 
         progressDialog = new ProgressDialog(this);
+        view = (View)findViewById(R.id.background);
+        errorMessage = (TextView)findViewById(R.id.error_message);
+        errorMessage.setVisibility(View.GONE);
+        reload = (Button)findViewById(R.id.reload);
+        reload.setVisibility(View.GONE);
+        //load website
+        loadWeb();
+    }
 
+    private void loadWeb(){
         mWebView = (AdvancedWebView) findViewById(R.id.webview);
         mWebView.setListener(this, this);
         mWebView.loadUrl("http://dewiariyanti105.000webhostapp.com/");
@@ -93,7 +107,18 @@ public class MainActivity extends AppCompatActivity implements AdvancedWebView.L
 
     @Override
     public void onPageError(int errorCode, String description, String failingUrl) {
-
+        view.setVisibility(View.VISIBLE);
+        errorMessage.setVisibility(View.VISIBLE);
+        reload.setVisibility(View.VISIBLE);
+        reload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                view.setVisibility(View.GONE);
+                errorMessage.setVisibility(View.GONE);
+                reload.setVisibility(View.GONE);
+                loadWeb();
+            }
+        });
     }
 
     @Override
